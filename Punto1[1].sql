@@ -2,26 +2,26 @@
 
 CREATE TYPE status AS ENUM ('Athlete', 'Alternate Athlete');
 
--- Create the COUNTRIES table
+-- Crear la tabla COUNTRIES
 CREATE TABLE countries (
     country_code CHAR(3) PRIMARY KEY,
     country VARCHAR(100) NOT NULL,
     country_full VARCHAR(255) NOT NULL
 );
 
--- Create the DISCIPLINES table
+-- Crear la tabla DISCIPLINES
 CREATE TABLE disciplines (
     discipline_code SERIAL PRIMARY KEY,
     discipline_name VARCHAR(100) NOT NULL
 );
 
--- Create the EVENTS table
+-- Crear la tabla EVENTS
 CREATE TABLE events (
     event_code SERIAL PRIMARY KEY,
     event_name VARCHAR(100) NOT NULL
 );
 
--- Create the ATHLETES table with the function column
+-- Crear la tabla ATHLETES con la columna function
 CREATE TABLE athletes (
     code CHAR(7) PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
@@ -35,7 +35,7 @@ CREATE TABLE athletes (
     FOREIGN KEY (country_code) REFERENCES countries(country_code)
 );
 
--- Create the ATHLETESXDISCIPLINES table (many-to-many relationship)
+-- Crear la tabla ATHLETESXDISCIPLINES (relación muchos a muchos)
 CREATE TABLE athletesxdisciplines (
     athlete_code CHAR(7),
     discipline_code INT,
@@ -44,7 +44,7 @@ CREATE TABLE athletesxdisciplines (
     FOREIGN KEY (discipline_code) REFERENCES disciplines(discipline_code) ON DELETE CASCADE
 );
 
--- Create the ATHLETESXEVENTS table (many-to-many relationship)
+-- Crear la tabla ATHLETESXEVENTS (relación muchos a muchos)
 CREATE TABLE athletesxevents (
     athlete_code CHAR(7),
     event_code INT,
@@ -53,6 +53,7 @@ CREATE TABLE athletesxevents (
     FOREIGN KEY (event_code) REFERENCES events(event_code) ON DELETE CASCADE
 );
 
+-- Crear la tabla olympics_staging
 CREATE TABLE olympics_staging (
     code CHAR(7),
     name VARCHAR(100),
@@ -73,6 +74,7 @@ CREATE TABLE olympics_staging (
     birth_date DATE
 );
 
+-- Insertar datos en la tabla countries
 INSERT INTO countries (country_code, country, country_full)
 VALUES
     ('MEX', 'Mexico', 'Mexico'),
@@ -81,6 +83,7 @@ VALUES
     ('ROU', 'Romania', 'Romania'),
     ('FRA', 'France', 'France');
 
+-- Insertar datos en la tabla countries
 INSERT INTO countries (country_code, country, country_full)
 VALUES
     ('PHI', 'Philippines', 'Philippines'),
@@ -94,7 +97,7 @@ VALUES
     ('GER', 'Germany', 'Germany')
 ON CONFLICT (country_code) DO NOTHING;  -- Prevent duplicates
 
-
+-- Insertar datos en la tabla athletes
 INSERT INTO athletes (code, name, name_short, name_tv, height, weight, birth_date, country_code, function)
 VALUES
     ('1535420', 'VALENCIA Alejandra', 'VALENCIA A', 'Alejandra VALENCIA', 0, 0.0, '1994-10-17', 'MEX', 'Athlete'),
@@ -113,7 +116,7 @@ VALUES
     ('1541272', 'CHIRAULT Thomas', 'CHIRAULT T', 'Thomas CHIRAULT', 0, 0.0, '1997-09-15', 'FRA', 'Athlete'),
     ('1541275', 'VALLADONT Jean-Charles', 'VALLADONT JC', 'Jean-Charles VALLADONT', 0, 0.0, '1989-03-20', 'FRA', 'Athlete');
 
-
+-- Insertar datos en la tabla athletes
 INSERT INTO athletes (code, name, name_short, name_tv, height, weight, birth_date, country_code, function)
 VALUES
     ('1978663', 'PAGDANGANAN Bianca', 'PAGDANGANAN B', 'Bianca PAGDANGANAN', 162, 0.0, '1997-10-28', 'PHI', 'Athlete'),
@@ -147,21 +150,24 @@ VALUES
     ('1891438', 'PIGNICZKI Fanni', 'PIGNICZKI F', 'Fanni PIGNICZKI', 0, 0.0, '2000-01-23', 'HUN', 'Athlete'),
     ('1896203', 'KOLOSOV Margarita', 'KOLOSOV M', 'Margarita KOLOSOV', 0, 0.0, '2004-03-11', 'GER', 'Athlete');
 
+-- Insertar datos en la tabla disciplines
+
 INSERT INTO disciplines (discipline_name)
 VALUES
     ('Archery');
 
+-- Insertar datos en la tabla disciplines
 INSERT INTO disciplines (discipline_name)
 VALUES
     ('Golf'),
     ('Rhythmic Gymnastics');
 
--- Modify the EVENTS table to add a discipline_code column as a foreign key
+-- Modificar la tabla EVENTS para agregar una columna discipline_code como clave foránea
 ALTER TABLE events
 ADD COLUMN discipline_code INT,
 ADD CONSTRAINT fk_discipline_code FOREIGN KEY (discipline_code) REFERENCES disciplines(discipline_code);
 
--- Insert events for Archery
+-- Insertar eventos para Archery
 INSERT INTO events (event_name, discipline_code)
 SELECT 'Women''s Individual', discipline_code FROM disciplines WHERE discipline_name = 'Archery'
 UNION ALL
@@ -173,20 +179,20 @@ SELECT 'Men''s Individual', discipline_code FROM disciplines WHERE discipline_na
 UNION ALL
 SELECT 'Men''s Team', discipline_code FROM disciplines WHERE discipline_name = 'Archery';
 
--- Insert events for Golf
+-- Insertar eventos para Golf
 INSERT INTO events (event_name, discipline_code)
 SELECT 'Women''s Individual Stroke Play', discipline_code FROM disciplines WHERE discipline_name = 'Golf'
 UNION ALL
 SELECT 'Men''s Individual Stroke Play', discipline_code FROM disciplines WHERE discipline_name = 'Golf';
 
--- Insert events for Rhythmic Gymnastics
+-- Insertar eventos para Rhythmic Gymnastics
 INSERT INTO events (event_name, discipline_code)
 SELECT 'Group All-Around', discipline_code FROM disciplines WHERE discipline_name = 'Rhythmic Gymnastics'
 UNION ALL
 SELECT 'Individual All-Around', discipline_code FROM disciplines WHERE discipline_name = 'Rhythmic Gymnastics';
 
 
--- Insert athlete-discipline relationships
+-- Insertar relaciones atleta-disciplina
 INSERT INTO athletesxdisciplines (athlete_code, discipline_code)
 SELECT a.code, d.discipline_code
 FROM athletes a
@@ -195,7 +201,7 @@ JOIN disciplines d ON
     OR (d.discipline_name = 'Golf' AND a.code IN ('1978663', '1980827', '1981485', '2500123', '3054982'))
     OR (d.discipline_name = 'Rhythmic Gymnastics' AND a.code IN ('1535358', '1535359', '1535360', '1535361', '1535362', '1540832', '1548933', '1548948', '1548976', '1548985', '1548999', '1549016', '1549023', '1555070', '1562222', '1562596', '1562782', '1880542', '1880548', '1880549', '1880551', '1880553', '1880558', '1891438', '1896203'));
 
--- Insert athlete-event relationships for Archery events
+-- Insertar relaciones atleta-evento para eventos de Archery
 INSERT INTO athletesxevents (athlete_code, event_code)
 SELECT '1535420', e.event_code FROM events e WHERE e.event_name = 'Women''s Individual' AND e.discipline_code = (SELECT discipline_code FROM disciplines WHERE discipline_name = 'Archery')
 UNION ALL
@@ -259,7 +265,7 @@ SELECT '1541275', e.event_code FROM events e WHERE e.event_name = 'Men''s Indivi
 UNION ALL
 SELECT '1541275', e.event_code FROM events e WHERE e.event_name = 'Men''s Team' AND e.discipline_code = (SELECT discipline_code FROM disciplines WHERE discipline_name = 'Archery');
 
--- Insert athlete-event relationships for Golf events
+-- Insertar relaciones atleta-evento para eventos de Golf
 INSERT INTO athletesxevents (athlete_code, event_code)
 SELECT '1978663', e.event_code FROM events e WHERE e.event_name = 'Women''s Individual Stroke Play' AND e.discipline_code = (SELECT discipline_code FROM disciplines WHERE discipline_name = 'Golf')
 UNION ALL
@@ -272,7 +278,7 @@ UNION ALL
 SELECT '2500123', e.event_code FROM events e WHERE e.event_name = 'Men''s Individual Stroke Play' AND e.discipline_code = (SELECT discipline_code FROM disciplines WHERE discipline_name = 'Golf');
 
 
--- Insert athlete-event relationships for Rhythmic Gymnastics events
+-- Insertar relaciones atleta-evento para eventos de Rhythmic Gymnastics
 INSERT INTO athletesxevents (athlete_code, event_code)
 SELECT '1535358', e.event_code FROM events e WHERE e.event_name = 'Group All-Around' AND e.discipline_code = (SELECT discipline_code FROM disciplines WHERE discipline_name = 'Rhythmic Gymnastics')
 UNION ALL
@@ -282,7 +288,7 @@ SELECT '1535360', e.event_code FROM events e WHERE e.event_name = 'Group All-Aro
 UNION ALL
 SELECT '1535361', e.event_code FROM events e WHERE e.event_name = 'Group All-Around' AND e.discipline_code = (SELECT discipline_code FROM disciplines WHERE discipline_name = 'Rhythmic Gymnastics');
 
--- Insert athlete-event relationships for Rhythmic Gymnastics events (continued)
+-- Insertar relaciones atleta-evento para eventos de Rhythmic Gymnastics (continuación)
 INSERT INTO athletesxevents (athlete_code, event_code)
 SELECT '1535362', e.event_code FROM events e WHERE e.event_name = 'Group All-Around' AND e.discipline_code = (SELECT discipline_code FROM disciplines WHERE discipline_name = 'Rhythmic Gymnastics')
 UNION ALL
@@ -326,11 +332,11 @@ SELECT '1891438', e.event_code FROM events e WHERE e.event_name = 'Individual Al
 UNION ALL
 SELECT '1896203', e.event_code FROM events e WHERE e.event_name = 'Individual All-Around' AND e.discipline_code = (SELECT discipline_code FROM disciplines WHERE discipline_name = 'Rhythmic Gymnastics');
 
--- Add the gender column to the athletes table
+-- Agregar la columna de género a la tabla de atletas
 ALTER TABLE athletes
 ADD COLUMN gender VARCHAR(10);
 
--- Update the athletes table with gender data
+-- Actualizar la tabla de atletas con datos de género
 UPDATE athletes SET gender = 'Female' WHERE code IN
 ('1535420', '1535429', '1536479', '1536632', '1538449',
  '1541265', '1541266', '1541268', '1535358', '1535359',
@@ -347,7 +353,7 @@ UPDATE athletes SET gender = 'Male' WHERE code IN
 
 
 
--- Query 1
+-- Consulta 1
 SELECT a.name AS full_name,
        STRING_AGG(d.discipline_name, ', ') AS disciplines,
        COUNT(ad.discipline_code) AS number_of_disciplines
@@ -360,7 +366,7 @@ HAVING COUNT(ad.discipline_code) > 1;
 
 
 
--- Update athletes with their respective weights
+-- Actualizar atletas con sus respectivos pesos
 UPDATE athletes SET weight = 65.0 WHERE code = '1535420'; -- VALENCIA Alejandra
 UPDATE athletes SET weight = 58.0 WHERE code = '1535429'; -- RUIZ Angela
 UPDATE athletes SET weight = 74.0 WHERE code = '1535430'; -- GRANDE Matias
@@ -408,7 +414,7 @@ UPDATE athletes SET weight = 60.0 WHERE code = '1891438'; -- PIGNICZKI Fanni
 UPDATE athletes SET weight = 58.0 WHERE code = '1896203'; -- KOLOSOV Margarita
 
 
--- Query 2
+-- Consulta 2
 SELECT a.name AS full_name,
        a.country_code AS nationality
 FROM athletes a
@@ -416,7 +422,7 @@ WHERE a.birth_date > '2000-01-01'
 AND a.weight > (SELECT AVG(weight) FROM athletes);
 
 
--- Query 3
+-- Consulta 3
 SELECT c.country_full,
        COUNT(a.code) AS number_of_athletes
 FROM athletes a
@@ -425,7 +431,7 @@ GROUP BY c.country_full
 HAVING COUNT(a.code) > 5;
 
 
--- Query 4
+-- Consulta 4
 WITH extremes AS (
   SELECT MIN(birth_date) AS oldest, MAX(birth_date) AS youngest
   FROM athletes
@@ -436,8 +442,7 @@ SELECT a.name AS full_name,
 FROM athletes a
 JOIN extremes e ON a.birth_date = e.oldest OR a.birth_date = e.youngest;
 
--- Query 5
-
+-- Consulta 5
 CREATE TEMP TABLE temp_athlete_events AS
 SELECT a.code AS athlete_code,
        a.name AS full_name,
@@ -456,7 +461,7 @@ JOIN athletesxevents ae ON t.athlete_code = ae.athlete_code
 JOIN events e ON ae.event_code = e.event_code;
 
 
--- Query 6
+-- Consulta 6
 CREATE VIEW athlete_event_count AS
 SELECT a.code,
        a.name AS full_name,
@@ -471,8 +476,7 @@ FROM athlete_event_count
 WHERE event_count = 2;
 
 
---Adding heights
-
+-- Actualizar atletas con sus respectivas alturas
 UPDATE athletes SET height = 172.0 WHERE code = '1535420'; -- VALENCIA Alejandra
 UPDATE athletes SET height = 165.0 WHERE code = '1535429'; -- RUIZ Angela
 UPDATE athletes SET height = 180.0 WHERE code = '1535430'; -- GRANDE Matias
@@ -520,7 +524,7 @@ UPDATE athletes SET height = 162.0 WHERE code = '1891438'; -- PIGNICZKI Fanni
 UPDATE athletes SET height = 164.0 WHERE code = '1896203'; -- KOLOSOV Margarita
 
 
--- QUERY 7
+-- Consulta 7
 CREATE TEMP TABLE temp_avg_height_weight AS
 SELECT country_code AS nationality,
        AVG(height) AS avg_height,
@@ -535,7 +539,7 @@ WHERE avg_height > 180 AND avg_weight < 75;
 
 
 
--- Query 8
+-- Consulta 8
 SELECT a.name AS athlete_name,
        d.discipline_name AS discipline,
        STRING_AGG(e.event_name, ', ') AS mismatched_events
@@ -552,25 +556,25 @@ GROUP BY a.name, d.discipline_name;
 
 --Punto 2
 
--- Table for categories
+-- creando la tabla de categorias
 CREATE TABLE category (
     id_category SERIAL PRIMARY KEY,
     category_name VARCHAR(255) NOT NULL
 );
 
--- Table for amenities
+-- creando la tabla de amenidades
 CREATE TABLE amenity (
     id_amenity SERIAL PRIMARY KEY,
     description VARCHAR(255) NOT NULL
 );
 
--- Table for sources
+-- creando la tabla de fuentes
 CREATE TABLE source (
     id_source SERIAL PRIMARY KEY,
     source_name VARCHAR(255) NOT NULL
 );
 
--- Main apartment table
+-- creando la tabla de apartamentos
 CREATE TABLE apartment (
     id_apartment SERIAL PRIMARY KEY,
     title VARCHAR(255) NOT NULL,
@@ -588,7 +592,7 @@ CREATE TABLE apartment (
     timestamp_posted TIMESTAMP
 );
 
--- Table for price details
+-- creando la tabla de precios
 CREATE TABLE price (
     id_price SERIAL PRIMARY KEY,
     apartment_id INT REFERENCES apartment(id_apartment),
@@ -597,43 +601,43 @@ CREATE TABLE price (
     currency VARCHAR(10)
 );
 
--- Intermediate table for apartment amenities (many-to-many relationship)
+-- creando la tabla de apartamento_amenidad
 CREATE TABLE apartment_amenity (
     apartment_id INT REFERENCES apartment(id_apartment),
     amenity_id INT REFERENCES amenity(id_amenity),
     PRIMARY KEY (apartment_id, amenity_id)
 );
 
--- Inserting data into the category table
+-- Insertando datos en la tabla de categorias
 INSERT INTO category (category_name) VALUES
 ('housing/rent/apartment'),
 ('housing/rent/studio');
 
--- Inserting data into the source table
+-- Insertando datos en la tabla de fuentes
 INSERT INTO source (source_name) VALUES
 ('RentHop'),
 ('RentLingo'),
 ('RentDig');
 
--- Inserting data into the apartment table
+-- Insertando datos en la tabla de apartamentos
 INSERT INTO apartment (title, description, address, city, state, latitude, longitude, bedrooms, square_feet, pets_allowed, source_id, category_id, timestamp_posted)
 VALUES
 ('Studio apartment 234 NE, Upland Terrace', 'Studio apartment in Upland Terrace', '234 NE Upland Terrace', 'Washington', 'DC', 38.900, -76.996, 1, 450, 'None', 1, 1, '2024-01-05 12:00:00'),
 ('One BR 101 Chapel Dr', 'Spacious one-bedroom apartment in Tallahassee', '101 Chapel Dr', 'Tallahassee', 'FL', 30.4401, -84.2807, 1, 650, 'Cats', 2, 2, '2024-01-06 14:00:00');
 
--- Inserting data into the price table
+-- Insertando datos en la tabla de precios
 INSERT INTO price (apartment_id, price, price_type, currency)
 VALUES
 (1, 2700, 'Monthly', 'USD'),
 (2, 2250, 'Monthly', 'USD');
 
--- Inserting data into the amenity table
+-- Insertando datos en la tabla de amenidades
 INSERT INTO amenity (description) VALUES
 ('Dishwasher'),
 ('Pool'),
 ('Gym');
 
--- Inserting into the apartment_amenity table
+-- Insertando datos en la tabla de apartamento_amenidad
 INSERT INTO apartment_amenity (apartment_id, amenity_id)
 VALUES
 (1, 1),
@@ -662,13 +666,13 @@ FROM apartment a
 JOIN price p ON a.id_apartment = p.apartment_id
 WHERE LOWER(a.title) LIKE '%luxury%' OR LOWER(a.description) LIKE '%luxury%';
 
--- Creating the view
+--creando la vista
 CREATE VIEW apartment_price_per_sqft AS
 SELECT a.title, a.square_feet, p.price, (p.price / a.square_feet) as price_per_sqft
 FROM apartment a
 JOIN price p ON a.id_apartment = p.apartment_id;
 
--- Query to get apartments above the median value
+--consulta para obtener los apartamentos con precio por pie cuadrado mayor al precio mediano
 WITH median_value AS (
     SELECT PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY price_per_sqft) AS median_price
     FROM apartment_price_per_sqft
@@ -677,7 +681,7 @@ SELECT title, price_per_sqft
 FROM apartment_price_per_sqft
 WHERE price_per_sqft > (SELECT median_price FROM median_value);
 
--- Create the temporary table
+--crear la tabla temporal
 CREATE TEMP TABLE top_10_expensive_apartments AS
 SELECT state, price
 FROM apartment a
@@ -685,7 +689,7 @@ JOIN price p ON a.id_apartment = p.apartment_id
 ORDER BY p.price DESC
 LIMIT 10;
 
--- Query to get the average price of these top listings by state
+--consulta para obtener el promedio de los precios de los 10 apartamentos más caros por estado
 SELECT state, AVG(price) as avg_top_price
 FROM top_10_expensive_apartments
 GROUP BY state;
